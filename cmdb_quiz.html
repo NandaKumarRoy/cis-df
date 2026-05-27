@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMDB Mock Test - ServiceNow Certification</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            min-height: 100vh;
+            padding: 10px;
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+        .header {
+            background: white; padding: 20px; border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); margin-bottom: 20px; text-align: center;
+        }
+        .header h1 { color: #333; font-size: 1.5em; margin-bottom: 8px; }
+        .header p { color: #666; font-size: 0.95em; }
+        .badge-row { display: flex; justify-content: center; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+        .badge { padding: 4px 12px; border-radius: 20px; font-size: 0.75em; font-weight: 700; }
+        .badge-repeat { background: #fbd38d; color: #744210; }
+        .badge-csdm { background: #bee3f8; color: #2c5282; }
+        .badge-cmdb { background: #c6f6d5; color: #22543d; }
+        .test-controls {
+            background: white; padding: 15px; border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); margin-bottom: 20px;
+        }
+        .controls-top {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 15px; flex-wrap: wrap; gap: 10px;
+        }
+        .test-info { display: flex; gap: 20px; flex-wrap: wrap; }
+        .info-item { display: flex; flex-direction: column; }
+        .info-label { font-size: 0.75em; color: #666; margin-bottom: 3px; }
+        .info-value { font-size: 1.1em; font-weight: bold; color: #11998e; }
+        .btn {
+            padding: 10px 20px; border: none; border-radius: 8px;
+            font-size: 0.95em; cursor: pointer; transition: all 0.3s;
+            font-weight: 600; white-space: nowrap;
+        }
+        .btn-primary { background: #11998e; color: white; }
+        .btn-primary:hover { background: #0d7a71; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(17,153,142,0.4); }
+        .btn-success { background: #48bb78; color: white; }
+        .btn-success:hover { background: #38a169; }
+        .btn-secondary { background: #718096; color: white; }
+        .btn-secondary:hover { background: #4a5568; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-sm { padding: 8px 16px; font-size: 0.85em; }
+        .question-card {
+            background: white; padding: 20px; border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); margin-bottom: 20px; display: none;
+        }
+        .question-card.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .question-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 15px; padding-bottom: 12px; border-bottom: 2px solid #e2e8f0;
+            flex-wrap: wrap; gap: 8px;
+        }
+        .question-number { font-size: 0.85em; color: #11998e; font-weight: 600; }
+        .question-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+        .question-type { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75em; font-weight: 600; }
+        .type-single { background: #bee3f8; color: #2c5282; }
+        .type-multiple { background: #fbd38d; color: #744210; }
+        .source-tag { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.7em; font-weight: 600; }
+        .src-both { background: #fbd38d; color: #744210; }
+        .src-csdm { background: #bee3f8; color: #2c5282; }
+        .src-cmdb { background: #c6f6d5; color: #22543d; }
+        .question-text { font-size: 1em; color: #2d3748; margin-bottom: 20px; line-height: 1.6; }
+        .options-container { display: flex; flex-direction: column; gap: 10px; }
+        .option {
+            display: flex; align-items: flex-start; padding: 12px 15px;
+            border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer;
+            transition: all 0.3s; background: white;
+        }
+        .option:hover { border-color: #11998e; background: #f0faf9; }
+        .option input[type="radio"], .option input[type="checkbox"] {
+            margin-right: 12px; margin-top: 3px; cursor: pointer;
+            width: 18px; height: 18px; accent-color: #11998e; flex-shrink: 0;
+        }
+        .option-label { flex: 1; cursor: pointer; font-size: 0.95em; color: #2d3748; line-height: 1.5; word-wrap: break-word; display: flex; align-items: center; }
+        .option.selected { border-color: #11998e; background: #e6f7f5; }
+        .option.correct { border-color: #48bb78; background: #c6f6d5; }
+        .option.incorrect { border-color: #f56565; background: #fed7d7; }
+        .option-letter {
+            display: inline-block; min-width: 24px; height: 24px; border-radius: 50%;
+            background: #11998e; color: white; text-align: center; line-height: 24px;
+            font-weight: bold; margin-right: 10px; flex-shrink: 0; font-size: 0.85em;
+        }
+        .option.correct .option-letter { background: #48bb78; }
+        .option.incorrect .option-letter { background: #f56565; }
+        .navigation { display: flex; justify-content: space-between; margin-top: 20px; gap: 10px; }
+        .nav-buttons { display: flex; gap: 8px; }
+        .results-container {
+            background: white; padding: 25px; border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: none; text-align: center;
+        }
+        .results-container.active { display: block; animation: fadeIn 0.3s; }
+        .score-circle {
+            width: 160px; height: 160px; border-radius: 50%;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; margin: 20px auto;
+            box-shadow: 0 10px 30px rgba(17,153,142,0.3);
+        }
+        .score-percentage { font-size: 2.5em; font-weight: bold; }
+        .score-label { font-size: 1em; margin-top: 5px; }
+        .results-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 15px; margin: 20px 0; }
+        .stat-item { padding: 15px; background: #f7fafc; border-radius: 10px; }
+        .stat-value { font-size: 1.8em; font-weight: bold; color: #11998e; }
+        .stat-label { color: #666; margin-top: 5px; font-size: 0.9em; }
+        .review-list { margin-top: 25px; text-align: left; }
+        .review-item { padding: 15px; background: #f7fafc; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #11998e; }
+        .review-item.wrong { border-left-color: #f56565; }
+        .review-question { font-weight: 600; margin-bottom: 10px; color: #2d3748; font-size: 0.95em; }
+        .review-answer { font-size: 0.9em; color: #666; line-height: 1.6; }
+        .answer-detail { margin-top: 8px; padding: 10px; background: white; border-radius: 5px; font-size: 0.85em; }
+        .answer-option { margin: 5px 0; padding: 8px; border-radius: 5px; }
+        .answer-option.correct-answer { background: #c6f6d5; color: #22543d; font-weight: 600; }
+        .answer-option.wrong-answer { background: #fed7d7; color: #742a2a; }
+        .progress-bar { width: 100%; height: 6px; background: #e2e8f0; border-radius: 10px; overflow: hidden; margin-bottom: 15px; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #11998e 0%, #38ef7d 100%); transition: width 0.3s; }
+        .timer { font-size: 1.2em; font-weight: bold; color: #11998e; }
+        .start-screen { background: white; padding: 30px 25px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; }
+        .start-screen h2 { color: #2d3748; font-size: 1.5em; margin-bottom: 15px; }
+        .start-screen p { color: #666; font-size: 0.95em; margin-bottom: 20px; line-height: 1.6; }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 25px; }
+        .stat-card { padding: 15px 10px; border-radius: 10px; }
+        .stat-card.repeat { background: #fefcbf; border: 2px solid #f6e05e; }
+        .stat-card.csdm { background: #ebf8ff; border: 2px solid #90cdf4; }
+        .stat-card.cmdb { background: #f0fff4; border: 2px solid #9ae6b4; }
+        .stat-card .num { font-size: 1.8em; font-weight: bold; }
+        .stat-card.repeat .num { color: #b7791f; }
+        .stat-card.csdm .num { color: #2c5282; }
+        .stat-card.cmdb .num { color: #22543d; }
+        .stat-card .lbl { font-size: 0.75em; font-weight: 600; margin-top: 4px; color: #555; }
+        .settings { background: #f7fafc; padding: 20px; border-radius: 10px; margin-bottom: 25px; text-align: left; }
+        .setting-item { margin-bottom: 15px; }
+        .setting-item label { display: block; margin-bottom: 5px; color: #2d3748; font-weight: 600; font-size: 0.9em; }
+        .setting-item input[type="checkbox"] { margin-right: 8px; }
+        .setting-item select { width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 5px; font-size: 0.95em; }
+        .filter-row { display: flex; gap: 10px; flex-wrap: wrap; }
+        .filter-btn { padding: 8px 16px; border: 2px solid #e2e8f0; border-radius: 20px; background: white; cursor: pointer; font-size: 0.85em; font-weight: 600; transition: all 0.2s; }
+        .filter-btn.active-repeat { background: #fbd38d; border-color: #f6ad55; color: #744210; }
+        .filter-btn.active-csdm { background: #bee3f8; border-color: #90cdf4; color: #2c5282; }
+        .filter-btn.active-cmdb { background: #c6f6d5; border-color: #9ae6b4; color: #22543d; }
+        .filter-btn.active-all { background: #11998e; border-color: #0d7a71; color: white; }
+        .question-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); gap: 8px; margin-top: 10px; }
+        .question-nav-btn { padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; background: white; cursor: pointer; font-size: 0.85em; font-weight: 600; transition: all 0.3s; }
+        .question-nav-btn:hover { border-color: #11998e; background: #e6f7f5; }
+        .question-nav-btn.answered { background: #c6f6d5; border-color: #48bb78; }
+        .question-nav-btn.current { background: #11998e; color: white; border-color: #11998e; }
+        .question-navigator { background: #f7fafc; padding: 15px; border-radius: 10px; margin-top: 15px; }
+        .navigator-title { font-size: 0.9em; font-weight: 600; color: #2d3748; margin-bottom: 10px; }
+        @media (max-width: 768px) {
+            .header h1 { font-size: 1.3em; }
+            .test-controls { padding: 12px; }
+            .controls-top { flex-direction: column; align-items: stretch; }
+            .test-info { justify-content: space-between; width: 100%; }
+            .btn { width: 100%; padding: 12px 20px; }
+            .navigation { flex-direction: column-reverse; }
+            .nav-buttons { width: 100%; }
+            .nav-buttons button { flex: 1; }
+            .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+            .stat-card .num { font-size: 1.4em; }
+        }
+        @media (max-width: 480px) {
+            body { padding: 5px; }
+            .header { padding: 15px; margin-bottom: 15px; }
+            .question-card { padding: 15px; }
+            .stats-grid { grid-template-columns: repeat(3, 1fr); }
+            .question-grid { grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 6px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🗄️ CMDB & CSDM Mock Test</h1>
+        <p>ServiceNow CMDB Certification — Comparative Question Bank</p>
+        <div class="badge-row">
+            <span class="badge badge-repeat">⭐ 13 High-Priority Repeated</span>
+            <span class="badge badge-csdm">🔵 65 CMDB & CSDM Exclusive</span>
+            <span class="badge badge-cmdb">🟢 57 CMDB QA Exclusive</span>
+        </div>
+    </div>
+
+    <div id="startScreen" class="start-screen">
+        <h2>Welcome to CMDB Mock Test</h2>
+        <p>This question bank covers 135 questions from the CMDB &amp; CSDM and CMDB Exam QA documents, including 13 high-priority questions that appear in both sets.</p>
+        <div class="stats-grid">
+            <div class="stat-card repeat"><div class="num">13</div><div class="lbl">⭐ Repeated (Both)</div></div>
+            <div class="stat-card csdm"><div class="num">65</div><div class="lbl">🔵 CMDB &amp; CSDM</div></div>
+            <div class="stat-card cmdb"><div class="num">57</div><div class="lbl">🟢 CMDB QA</div></div>
+        </div>
+        <div class="settings">
+            <div class="setting-item">
+                <label>Filter by Source:</label>
+                <div class="filter-row">
+                    <button class="filter-btn active-all" id="filterAll" onclick="setFilter('all')">All (135)</button>
+                    <button class="filter-btn" id="filterRepeat" onclick="setFilter('repeat')">⭐ Repeated (13)</button>
+                    <button class="filter-btn" id="filterCsdm" onclick="setFilter('csdm')">🔵 CMDB &amp; CSDM (65)</button>
+                    <button class="filter-btn" id="filterCmdb" onclick="setFilter('cmdb')">🟢 CMDB QA (57)</button>
+                </div>
+            </div>
+            <div class="setting-item">
+                <label for="numQuestions">Number of Questions:</label>
+                <select id="numQuestions">
+                    <option value="10">10 Questions</option>
+                    <option value="20">20 Questions</option>
+                    <option value="50">50 Questions</option>
+                    <option value="100">100 Questions</option>
+                    <option value="all" selected>All Questions</option>
+                </select>
+            </div>
+            <div class="setting-item">
+                <label><input type="checkbox" id="shuffleQuestions" checked> Shuffle Questions</label>
+            </div>
+            <div class="setting-item">
+                <label><input type="checkbox" id="timerEnabled"> Enable Timer</label>
+            </div>
+        </div>
+        <button class="btn btn-primary" onclick="startTest()">Start Test</button>
+    </div>
+
+    <div id="testControls" class="test-controls" style="display:none;">
+        <div class="controls-top">
+            <div class="test-info">
+                <div class="info-item">
+                    <span class="info-label">Question</span>
+                    <span class="info-value"><span id="currentQuestion">1</span>/<span id="totalQuestions">10</span></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Answered</span>
+                    <span class="info-value" id="answeredCount">0</span>
+                </div>
+                <div class="info-item" id="timerContainer" style="display:none;">
+                    <span class="info-label">Time</span>
+                    <span class="timer" id="timer">00:00</span>
+                </div>
+            </div>
+            <button class="btn btn-success btn-sm" onclick="submitTest()">Submit Test</button>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width:0%"></div>
+        </div>
+        <div class="question-navigator">
+            <div class="navigator-title">Quick Navigation:</div>
+            <div class="question-grid" id="questionGrid"></div>
+        </div>
+    </div>
+
+    <div id="questionContainer"></div>
+
+    <div id="resultsContainer" class="results-container">
+        <h2>Test Results</h2>
+        <div class="score-circle">
+            <div class="score-percentage" id="scorePercentage">0%</div>
+            <div class="score-label">Score</div>
+        </div>
+        <div class="results-stats">
+            <div class="stat-item"><div class="stat-value" id="correctCount">0</div><div class="stat-label">Correct</div></div>
+            <div class="stat-item"><div class="stat-value" id="incorrectCount">0</div><div class="stat-label">Incorrect</div></div>
+            <div class="stat-item"><div class="stat-value" id="unansweredCount">0</div><div class="stat-label">Unanswered</div></div>
+        </div>
+        <div class="review-list" id="reviewList"></div>
+        <div style="margin-top:25px;">
+            <button class="btn btn-primary" onclick="location.reload()">Take Test Again</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// source: 'repeat' | 'csdm' | 'cmdb'
+const quizData = [
+  // ── SECTION 1: Repeated (13) ────────────────────────────────────────────────
+  { id:"R1", source:"repeat", question:"A CMDB Administrator would like to minimize stale CIs in the CMDB. Which CMDB Health Dashboard scorecard displays this information?", isMultiple:false, options:{A:"Correctness",B:"Completeness",C:"Compliance"}, correct:["A"] },
+  { id:"R2", source:"repeat", question:"What is the relationship between an application and a server?", isMultiple:false, options:{A:"Application > Runs::Runs On > Server",B:"Application > Used by::Uses > Server",C:"Application > Uses::Used by > Server",D:"Application > Runs on::Runs > Server"}, correct:["A"] },
+  { id:"R3", source:"repeat", question:"A Configuration Management Governance team is transitioning from utilizing legacy CMDB status fields to CSDM life cycle status fields. Which table can be modified?", isMultiple:false, options:{A:"Life Cycle Mapping [life_cycle_mapping]",B:"Life Cycle Stage Status [life_cycle_stage_status]",C:"Life Cycle Stages [life_cycle_stage]",D:"Life Cycle Controls [life_cycle_control]"}, correct:["A"] },
+  { id:"R4", source:"repeat", question:"User endpoint devices are imported into the CMDB and populate the 'Assigned to' field on the Computer [cmdb_ci_computer] CI. What action does a Configuration Analyst take to achieve this in an automated way?", isMultiple:false, options:{A:"Hide the 'Assigned to' field and dot-walk to related CI",B:"Configure a business rule to populate 'Assigned to' field on asset",C:"Use the Asset-CI Field Mapping module to replicate the value"}, correct:["C"] },
+  { id:"R5", source:"repeat", question:"An organization needs to maintain non-discoverable attributes (e.g., warranty expiration dates) for hardware CIs. What method ensures these attributes are accurately maintained?", isMultiple:false, options:{A:"Use the CMDB Reconciliation Engine",B:"Create a new CI class specifically for non-discoverable attributes",C:"Use a scheduled data import to update the attributes from an external source"}, correct:["C"] },
+  { id:"R6", source:"repeat", question:"Where can a CMDB 360/Multisource CMDB Saved Query be viewed and created in the CMDB Workspace?", isMultiple:false, options:{A:"Coverage window on the CMDB 360 tab",B:"Saved queries window on the CMDB 360 tab",C:"Saved queries window on the Insights tab",D:"CMDB Query Builder"}, correct:["B"] },
+  { id:"R7", source:"repeat", question:"An Asset Manager wants to ensure that Asset records and CI records are kept synchronized automatically. How does the Manager do this? (Choose 2)", isMultiple:true, options:{A:"Ensure that the business rule to update CI fields on change on the asset table is active",B:"Ensure that the business rule to update Asset fields on change on the CI table is active",C:"Ensure one-to-one physical mapping between Asset and CI",D:"Ensure that scheduled jobs are run during off business hours"}, correct:["A","B"] },
+  { id:"R8", source:"repeat", question:"The CMDB Configuration Management team wants to manage de-duplication tasks generated from data ingested via the IRE. In which area of the CMDB Workspace can they locate these de-duplication tasks?", isMultiple:false, options:{A:"Important actions tile under the Home tab",B:"CMDB feature adoption tile under the Insights tab",C:"Total status tile under the My Work tab"}, correct:["A"] },
+  { id:"R9", source:"repeat", question:"A CMDB Administrator is asked to clean up the CMDB duplicates. What is the preferred way to manage this task?", isMultiple:false, options:{A:"The de-duplication dashboard on the CMDB workspace",B:"My Tasks in the Application Navigator",C:"The de-duplication task module"}, correct:["A"] },
+  { id:"R10", source:"repeat", question:"A CMDB Administrator, viewing the CMDB Data Foundations Dashboard, notices the Unique Locations Result percentage is low. What is the recommended process from the associated playbook to correct this issue?", isMultiple:false, options:{A:"Review both locations, update CIs with the correct location and delete the duplicate location",B:"Use the Duplicate CI Remediator to merge the duplicate location records",C:"Keep both locations as either can be used as a valid alternate location",D:"Retain the location that matches naming convention, delete the duplicate without further validation"}, correct:["A"] },
+  { id:"R11", source:"repeat", question:"Where can an administrator perform Natural Language Queries (NLQ)?", isMultiple:false, options:{A:"CMDB Data Manager",B:"CI Class Manager",C:"CMDB Workspace",D:"CMDB Health Dashboard"}, correct:["C"] },
+  { id:"R12", source:"repeat", question:"A CMDB Administrator needs the fastest time to value solution for ingesting Windows computer data from SCCM. Which management tool accomplishes this?", isMultiple:false, options:{A:"Service Graph Connectors / SCCM Service Graph Connector",B:"Agent Client Collector",C:"Import Sets",D:"IntegrationHub ETL"}, correct:["A"] },
+  { id:"R13", source:"repeat", question:"Two new CI records are imported. CI1 matches an existing CI by name; CI2 matches by IP address. Which is correct based on the identification rule?", isMultiple:false, options:{A:"CI1 and CI2 both inserted as new records",B:"CI1 and CI2 both updated with matching records",C:"CI1 inserted as new, CI2 updated with matching record",D:"CI1 updated with matching record, CI2 inserted as new"}, correct:["D"] },
+
+  // ── SECTION 2: CMDB & CSDM Exclusive (65) ──────────────────────────────────
+  { id:"D1-Q1", source:"csdm", question:"A Business Relationship Manager wants to implement Service Portfolio Management (SPM) and present offerings to business consumers. Which CSDM Domain does this align with?", isMultiple:false, options:{A:"Design and Planning (Design)",B:"Build and Integration (Build)",C:"Service Delivery",D:"Service Consumption (Sell/Consume)"}, correct:["D"] },
+  { id:"D1-Q2", source:"csdm", question:"A CMDB Administrator has installed a Service Graph Connector (SGC) and then made customizations to the mappings. Which is a consequence of this action?", isMultiple:false, options:{A:"Fields populated by a customization will have a special tag associated with them in the CMDB.",B:"The customization will prevent the SGC from executing without an approval record attached.",C:"The customized mappings are not supported by ServiceNow."}, correct:["A"] },
+  { id:"D1-Q3", source:"csdm", question:"Two new CI records are imported into the hardware class of the CMDB. CI1: name matches an existing CI. CI2: IP address matches an existing CI. Which is correct based on the identification rule?", isMultiple:false, options:{A:"CI1 and CI2 both will be inserted as new records.",B:"CI1 and CI2 both will be updated with matching records.",C:"CI1 will be inserted as new record and CI2 will be updated with matching record.",D:"CI1 will be updated with matching record and CI2 will be inserted as new record."}, correct:["D"] },
+  { id:"D1-Q4", source:"csdm", question:"A Configuration Management Governance team is transitioning from legacy CMDB status fields to CSDM life cycle status fields. Which table can be modified?", isMultiple:false, options:{A:"Life Cycle Mapping [life_cycle_mapping]",B:"Life Cycle Stage Status [life_cycle_stage_status]",C:"Life Cycle Stages [life_cycle_stage]",D:"Life Cycle Controls [life_cycle_control]"}, correct:["A"] },
+  { id:"D1-Q6", source:"csdm", question:"The CMDB Administrator has been asked to establish Configuration Management with a functional CMDB. Which factor is most critical for successfully operationalizing the CMDB in ServiceNow?", isMultiple:false, options:{A:"Establishing clear governance and continuously monitoring CMDB health",B:"Allowing IT teams to modify CMDB records as needed to promote flexibility",C:"Populating the CMDB with as much data as possible",D:"Relying on automated discovery tools to maintain and update CMDB records"}, correct:["A"] },
+  { id:"D1-Q7", source:"csdm", question:"A CMDB Data Owner wants better insights on different data sources. After installing the Service Graph Connector Central plugin, what workspace will have the new Service Graph Connector Central tab?", isMultiple:false, options:{A:"Discovery Admin Workspace",B:"Service Graph Connector Workspace",C:"CMDB Workspace"}, correct:["B"] },
+  { id:"D1-Q8", source:"csdm", question:"A CMDB Administrator needs the fastest time to value solution for ingesting Windows computer data from SCCM. Which management tool accomplishes this?", isMultiple:false, options:{A:"SCCM Service Graph Connector",B:"SCCM Usage Metering Spoke",C:"Import set using JDBC data source connection to SCCM",D:"IntegrationHub ETL connection to SCCM using Robust Transform Engine (RTE)"}, correct:["A"] },
+  { id:"D1-Q9", source:"csdm", question:"Which ServiceNow solutions automatically create relationships between CI Applications that are part of an Application Service? (Choose 2)", isMultiple:true, options:{A:"Data Manager",B:"IntegrationHub ETL",C:"Service Mapping",D:"Discovery",E:"Event Management"}, correct:["C","D"] },
+  { id:"D1-Q10", source:"csdm", question:"A CMDB Administrator wants to use the CMDB and CSDM Data Foundations Dashboard. Where can the Administrator obtain the dashboard?", isMultiple:false, options:{A:"It is a paid application on the ServiceNow Store.",B:"It is a free application on the ServiceNow Innovation Lab.",C:"It is a free application on the ServiceNow Store.",D:"It is active by default."}, correct:["C"] },
+  { id:"D1-Q11", source:"csdm", question:"A Configuration Manager working in the CMDB Workspace wants to see how CIs are connected to each other. Which tool can be used?", isMultiple:false, options:{A:"Relationship Map",B:"Unified Map",C:"Business Service Map"}, correct:["A"] },
+  { id:"D1-Q12", source:"csdm", question:"The Server class uses a dynamic reconciliation rule of lowest value; Windows Server class uses most reported for Disk Space (GB). Data sources: Tivoli=75, ServiceNow=75, LANDesk=50, Altiris=80. Which value is added for a Windows Server record?", isMultiple:false, options:{A:"50",B:"75",C:"80"}, correct:["B"] },
+  { id:"D1-Q13", source:"csdm", question:"How would ServiceNow Platform with Incident and Change applications be mapped in CSDM?", isMultiple:false, options:{A:"All web based Architecture type. A Depends On relationship created between ServiceNow Platform and Incident and Change.",B:"All web based Architecture type. Incident and Change would have a reference to ServiceNow Platform.",C:"ServiceNow Platform would be Platform Host. Incident and Change would be Platform Applications. A Depends On relationship created.",D:"ServiceNow Platform would be Platform Host. Incident and Change would be Platform Applications with a reference to ServiceNow Platform."}, correct:["C"] },
+  { id:"D1-Q15", source:"csdm", question:"A CMDB Administrator wants to leverage dynamic reconciliation rules. Which feature must be enabled?", isMultiple:false, options:{A:"CMDB 360/Multisource CMDB",B:"Reconciliation Rules",C:"CMDB Data Manager",D:"CMDB Workspace"}, correct:["A"] },
+  { id:"D1-Q16", source:"csdm", question:"The Change Management team wants to implement a Change across multiple CIs at the same time using a Dynamic CI Group containing all Windows servers. Which field on the Change Request form needs to be populated with the dynamic CI group?", isMultiple:false, options:{A:"Configuration Item",B:"Service Offering",C:"Business Service"}, correct:["C"] },
+  { id:"D1-Q17", source:"csdm", question:"A CMDB Administrator wants to leverage the CMDB Data Foundations Dashboard. What are benefits of using this application? (Choose 2)", isMultiple:true, options:{A:"Checks that important data is valid and properly configured",B:"Uses automation to remediate potential risks",C:"Has a framework to create custom metrics for the CMDB",D:"Provides playbooks to assist in the remediation of potential risks"}, correct:["A","B"] },
+  { id:"D1-Q18", source:"csdm", question:"Using CI Class Manager, the Tomcat identification rule has criterion attributes: Class, Install Directory. Which identifier entry configuration option must be checked to attempt a match using the Application identification rule if no match is found using the Tomcat identification rule?", isMultiple:false, options:{A:"Independent",B:"Criterion attributes",C:"Applies to",D:"Allow fallback to parent's rules"}, correct:["D"] },
+  { id:"D1-Q19", source:"csdm", question:"An IT group has a requirement to upgrade all Windows servers. What happens to the Dynamic CI Group when it is referenced from the Configuration Item field on a Change form?", isMultiple:false, options:{A:"It displays all related CIs in the Impacted Services related list.",B:"It calculates impact against the Dynamic CI Group.",C:"It displays all related CIs in the Affected CIs related list."}, correct:["C"] },
+  { id:"D1-Q20", source:"csdm", question:"A CMDB Administrator needs to configure a new application identification rule that considers the potential for the same application installed more than once on the same server. Which is the best choice of a criterion attribute?", isMultiple:false, options:{A:"Version",B:"Port",C:"Configuration File Name",D:"Configuration File Path",E:"Class"}, correct:["B"] },
+  { id:"D1-Q22", source:"csdm", question:"A global enterprise integrates data from multiple discovery sources leading to duplicate records and inconsistencies. What actions does the CMDB team take to resolve the issue? (Choose 2)", isMultiple:true, options:{A:"Create a custom script to manually adjust incoming data",B:"Allow each discovery source to define its own CI class",C:"Implement identification and reconciliation rules to avoid duplicates and standardize CI classification",D:"Use CI Class Manager to establish standardized CI classes and attributes across all discovery sources"}, correct:["C","D"] },
+  { id:"D1-Q25", source:"csdm", question:"A CMDB Administrator would like to minimize stale CIs in the CMDB. Which CMDB Health Dashboard scorecard displays this information?", isMultiple:false, options:{A:"Compliance",B:"Correctness",C:"Completeness"}, correct:["B"] },
+  { id:"D1-Q26", source:"csdm", question:"User endpoint devices are imported into the CMDB and populate the 'Assigned to' field on the Computer CI. The Asset team requests the 'Assigned to' field on the related Asset be populated automatically. What action does a Configuration Analyst take?", isMultiple:false, options:{A:"Configure a business rule on the computer table to use a script to populate the 'Assigned to' field on the asset",B:"Use the Asset-CI Field Mapping module to create a new rule to replicate the 'Assigned to' value between the asset and associated CI",C:"Hide the 'Assigned to' field on the asset record and create a new field that dot walks to the related CI"}, correct:["B"] },
+  { id:"D1-Q27", source:"csdm", question:"How does a CMDB Administrator use the ServiceNow Platform to ensure the data quality associated with CIs in the CMDB?", isMultiple:false, options:{A:"Data Quality Scheduled Job",B:"Data Quality Business Rule",C:"CMDB Workspace",D:"CMDB Audit Business Rule"}, correct:["B"] },
+  { id:"D1-Q29", source:"csdm", question:"The CMDB Configuration Management team wants to manage de-duplication tasks generated from data ingested via the IRE. In which area of the CMDB Workspace can they locate these de-duplication tasks?", isMultiple:false, options:{A:"Important actions tile under the Home tab",B:"CMDB feature adoption tile under the Insights tab",C:"Total status tile under the My Work tab"}, correct:["A"] },
+  { id:"D1-Q30", source:"csdm", question:"Which are CMDB Data Manager end of life policy types? (Choose 2)", isMultiple:true, options:{A:"Disposed",B:"Retire",C:"Archive",D:"Decommission",E:"Lost"}, correct:["B","C"] },
+  { id:"D1-Q31", source:"csdm", question:"A Service Owner needs to view related items, such as Active Incidents and Planned Changes, directly on the home node of the Unified Map. Which work area would allow the Service Owner to meet this goal?", isMultiple:false, options:{A:"Map",B:"Contextual side panel",C:"Content controls",D:"Tool box"}, correct:["B"] },
+  { id:"D1-Q32", source:"csdm", question:"A CMDB Administrator is leveraging CI data as part of an Integrated Risk Management implementation. Which CSDM relationships are leveraged using the CSDM playbooks? (Choose 2)", isMultiple:true, options:{A:"Business Applications that have relationships to Application Services",B:"Business Applications that have their relationships to Information Objects",C:"Logical CIs that have relationships with Information Objects",D:"Locations that have established parent records"}, correct:["A","B"] },
+  { id:"D1-Q33", source:"csdm", question:"An organization needs to maintain non-discoverable attributes, such as warranty expiration dates, for hardware CIs. What method ensures these attributes are accurately maintained?", isMultiple:false, options:{A:"Use the CMDB Reconciliation Engine to update the attributes",B:"Create a new CI class specifically for non-discoverable attributes",C:"Use a scheduled data import to update the attributes from an external source"}, correct:["C"] },
+  { id:"D1-Q34", source:"csdm", question:"A company wants to track regulatory compliance. What is the purpose of an information object in the CSDM framework?", isMultiple:false, options:{A:"It describes data in general on a group of Configuration Items.",B:"It describes data exchanged between an API Interface and an Application.",C:"It describes the logical data to the Business Applications."}, correct:["B"] },
+  { id:"D1-Q35", source:"csdm", question:"A Configuration Management Process Owner needs to configure Data Manager for policy tasks to be correctly assigned aligned with the group attribute in CI Class Manager. Which is the recommended field for policy task assignment?", isMultiple:false, options:{A:"Change group",B:"Support group",C:"Approval group",D:"Managed by group"}, correct:["B"] },
+  { id:"D1-Q36", source:"csdm", question:"A CMDB Manager wants to start adding CSDM design and planning (design) domain components into the CMDB. Who is involved in this exercise? (Choose 2)", isMultiple:true, options:{A:"Application Owner",B:"Enterprise Architect",C:"Business Relationship Manager",D:"Application Service Owner"}, correct:["A","B"] },
+  { id:"D1-Q37", source:"csdm", question:"A CMDB Administrator is working in the CI Class Manager on the Basic Info tab. How can the class be set as a Principal Class?", isMultiple:false, options:{A:"Select 'Yes' from the Principal Class choice list",B:"Check the Principal Class check box",C:"Click the Principal Class UI Action button"}, correct:["B"] },
+  { id:"D1-Q39", source:"csdm", question:"Which shows the most complete list of policy types provided by the CMDB Data Manager?", isMultiple:false, options:{A:"Retire, Archive, Attestation, Certification, and Delete",B:"Archive and Delete",C:"Delete, Attestation, Retire, and Certification",D:"Attestation, Retire, and Certification"}, correct:["A"] },
+  { id:"D1-Q40", source:"csdm", question:"A Configuration Manager needs to ingest third-party CIs into the CMDB. Which method minimizes the risk of technical debt?", isMultiple:false, options:{A:"Import Sets and Transform Maps",B:"Table API",C:"Vendor provided integration",D:"Service Graph Connector"}, correct:["D"] },
+  { id:"D1-Q41", source:"csdm", question:"A Manager needs information on how to correctly establish relationships between Infrastructure CIs, Technical Service Offerings, and Application Services. Which CSDM domain provides this information?", isMultiple:false, options:{A:"Build and Integration (Build)",B:"Service Delivery (Manage Technical Services)",C:"Foundation",D:"Service Consumption (Self/Consume)",E:"Design and Planning (Design)"}, correct:["B"] },
+  { id:"D1-Q42", source:"csdm", question:"A Configuration Management team wants to confirm that all servers in the CMDB are correctly associated with their location. Which CMDB Data Manager policy type does the team create?", isMultiple:false, options:{A:"Delete",B:"Certification",C:"Retire",D:"Attestation",E:"Archive"}, correct:["B"] },
+  { id:"D1-Q43", source:"csdm", question:"A retail organization needs to ensure that incidents affecting customer-facing services are resolved quickly. Which CSDM attribute is used to prioritize these services?", isMultiple:false, options:{A:"Affected CIs in the Incident record",B:"Service classification in the Technical Service",C:"Business Criticality in the Service Offering",D:"Assignment Group on the CI record"}, correct:["C"] },
+  { id:"D1-Q44", source:"csdm", question:"A CMDB Administrator notices that CIs do not have a support group. How can the support group be automatically populated and maintained on the CI record?", isMultiple:false, options:{A:"CI Class Manager",B:"Technology Management Service Offering (Technical Service Offering)",C:"Dynamic CI group",D:"Technology Management Service (Technical Service)"}, correct:["A"] },
+  { id:"D1-Q45", source:"csdm", question:"A CMDB CI Class Owner responsible for the Windows Servers needs to manage the Windows Server class. Which CI Class Manager feature will help streamline this task?", isMultiple:false, options:{A:"Pinned Classes",B:"CI Favorites",C:"Search CI Classes"}, correct:["A"] },
+  { id:"D1-Q47", source:"csdm", question:"The CMDB Administrator group seeks to filter specific CI classes that display on the CMDB Health Dashboard. Which feature can the group utilize to achieve this goal?", isMultiple:false, options:{A:"Data Refresh Rules",B:"Reconciliation Rules",C:"Identification Rules",D:"Health Inclusion Rules"}, correct:["D"] },
+  { id:"D1-Q48", source:"csdm", question:"A Configuration Manager is reviewing the life cycle of CIs to ensure data accuracy and reviews the legacy status values and their equivalent CSDM life cycle stage and status values. Where are these reviewed?", isMultiple:false, options:{A:"Life cycle choice list",B:"Life cycle mappings",C:"Life cycle properties"}, correct:["B"] },
+  { id:"D1-Q49", source:"csdm", question:"A CMDB Architect intends to build a CMDB using CSDM guidance. Which CMDB tables will the architect use to build the CSDM sell/consume domain?", isMultiple:false, options:{A:"Application Service, Technical Service, Technical Service Offering",B:"Business Service Offering, Business Service",C:"Business Capability, Information Object, Business Application"}, correct:["C"] },
+  { id:"D1-Q51", source:"csdm", question:"A CMDB team noticed that some hardware CIs are missing the serial number information. Which accomplishes the task of identifying and addressing these gaps?", isMultiple:false, options:{A:"CI Class Manager",B:"Service Graph Connectors",C:"CMDB Data Foundation Playbook"}, correct:["C"] },
+  { id:"D1-Q52", source:"csdm", question:"A CMDB Administrator needs to prevent duplicate CI creation from import sets that load data from vendor shipment files. How can the Administrator do this?", isMultiple:false, options:{A:"Set the coalesce on two mappings within the transform map",B:"Use the CMDBTransformUtil API in the transform script",C:"Create comparison rules in the IRE",D:"Set the system property to utilize the IRE within transform maps"}, correct:["D"] },
+  { id:"D1-Q53", source:"csdm", question:"A CMDB Administrator uses the CMDB Data Foundations Dashboard and notices low scores for several metrics. Which actions can be taken to improve CMDB Health? (Choose 2)", isMultiple:true, options:{A:"Use the Remediation Playbooks linked beside each metric",B:"Adjust the metrics using exclusion rules to improve the scores",C:"Remove non-operational and retired CIs",D:"Focus on metric(s) with Critical and High priorities"}, correct:["A","C"] },
+  { id:"D1-Q54", source:"csdm", question:"The Incident Process Owner asks which classes of CSDM are used on the Incident form. Which classes are appropriate? (Choose 2)", isMultiple:true, options:{A:"Service Portfolio",B:"Service Offering",C:"Application Service",D:"Business Application"}, correct:["B","C"] },
+  { id:"D1-Q55", source:"csdm", question:"A Configuration Manager is implementing end to end service modeling and wants help on status and playbooks for improving quality. What does the Configuration Manager reference?", isMultiple:false, options:{A:"CMDB Data Foundation Dashboard",B:"CSDM Data Foundation Dashboard",C:"Service Mapping Data Foundation Dashboard",D:"CMDB Workspace"}, correct:["B"] },
+  { id:"D1-Q56", source:"csdm", question:"A Configuration Manager wants to explore ServiceNow CMDB 360 saved queries. What insights are gained from CMDB 360 queries? (Choose 2)", isMultiple:true, options:{A:"Orphan CIs created from different data sources",B:"Different attribute values from different data sources",C:"Unique CIs created from different data sources",D:"Gaps in attribute data from different data sources",E:"Duplicate configuration items from different data sources"}, correct:["B","E"] },
+  { id:"D1-Q57", source:"csdm", question:"An Asset Manager wants to ensure that Asset records and CI records are kept synchronized automatically. How does the Manager do this? (Choose 2)", isMultiple:true, options:{A:"Ensure that the business rule to update CI fields on change on the asset table is active",B:"Ensure that the business rule to update Asset fields on change on the CI table is active",C:"Ensure one-to-one physical mapping between Asset and CI",D:"Ensure that scheduled jobs are run during off business hours"}, correct:["A","B"] },
+  { id:"D1-Q58", source:"csdm", question:"A CMDB Configuration Manager intends to implement CMDB Data Manager delete and archive policies for all server records in the New York datacenter. In which lifecycle state would servers be affected?", isMultiple:false, options:{A:"Missing - Stolen",B:"In any lifecycle state",C:"End of Life - Retired",D:"Inventory - Available"}, correct:["C"] },
+  { id:"D1-Q59", source:"csdm", question:"A CMDB Administrator, viewing the CMDB Data Foundations Dashboard, notices the Unique Locations Result percentage is low. What is the recommended process from the associated playbook to correct this issue?", isMultiple:false, options:{A:"Review both locations, update CIs with the correct location and delete the duplicate location",B:"Use the Duplicate CI Remediator to merge the duplicate location records",C:"Keep both locations as either can be used as a valid alternate location",D:"Retain the location that matches the organization's naming convention, delete the duplicate without further validation"}, correct:["A"] },
+  { id:"D1-Q60", source:"csdm", question:"Where can a CMDB 360/Multisource CMDB Saved Query be viewed and created in the CMDB Workspace?", isMultiple:false, options:{A:"Coverage window on the CMDB 360 tab",B:"Saved queries window on the CMDB 360 tab",C:"Saved queries window on the Insights tab",D:"CMDB Query Builder"}, correct:["B"] },
+  { id:"D1-Q61", source:"csdm", question:"A CMDB Configuration Manager is reviewing the Duplicate metric in the Server class, showing Healthy CIs/Evaluated as 59,000/60,000. What does this indicate about the scope of server records?", isMultiple:false, options:{A:"59,000 Linux and 60,000 Windows servers records are in scope",B:"60,000 server records are in scope for this metric",C:"1,000 server records are in scope for this metric",D:"59,000 server records are in scope for this metric"}, correct:["B"] },
+  { id:"D1-Q62", source:"csdm", question:"The ITSM Manager wants to use Technical Service Offerings to populate the support group of associated CIs. What CSDM stage would this be completed in?", isMultiple:false, options:{A:"Run",B:"Fly",C:"Foundation",D:"Walk",E:"Crawl"}, correct:["D"] },
+  { id:"D1-Q63", source:"csdm", question:"A CMDB Administrator wants to start utilizing the CMDB Health Dashboard and its Key Performance Indicators. What does the Administrator do to start using the dashboard?", isMultiple:false, options:{A:"Activate the dashboard scheduled jobs",B:"Nothing, the dashboard is activated by default",C:"Activate the dashboard system property",D:"Download the dashboard from the ServiceNow store"}, correct:["A"] },
+  { id:"D1-Q64", source:"csdm", question:"A CMDB Administrator is asked to clean up the CMDB duplicates. What is the preferred way to manage this task?", isMultiple:false, options:{A:"The de-duplication dashboard on the CMDB workspace",B:"My Tasks in the Application Navigator",C:"The de-duplication task module"}, correct:["A"] },
+  { id:"D1-Q65", source:"csdm", question:"A CMDB CI Class Owner has been asked to change the icon for the UNIX Server class. Which CI Class Manager tab can the owner use to change the icon?", isMultiple:false, options:{A:"Attributes",B:"Suggested Relationships",C:"Basic Info",D:"CI List"}, correct:["C"] },
+  { id:"D1-Q66", source:"csdm", question:"An organization is using CMDB Query Builder to find all application services with a database that has incidents and all infrastructure in those application services. Which steps does the organization take? (Choose 2)", isMultiple:true, options:{A:"Use a Service Mapping Query to include non-CMDB tables like the Incident table",B:"Use a CMDB Query to include application services and their related infrastructure",C:"Use a Service Mapping Query to find all incidents related to the database",D:"Add a non-CMDB table to the query"}, correct:["A","B"] },
+  { id:"D1-Q68", source:"csdm", question:"Where does a user with the appropriate role(s) review and manage the generated tasks after configuring CMDB Data Manager policies?", isMultiple:false, options:{A:"CMDB Workspace > My Work tab",B:"CMDB Health Dashboard > Audit tab",C:"CMDB Workspace > Management tab",D:"CMDB Health Dashboard > Duplicate CIs tab"}, correct:["A"] },
+  { id:"D1-Q69", source:"csdm", question:"A CMDB Administrator is using the Duplicate CI Remediator. On the first tab, the Main CI is selected. Which attributes are used to identify the Main CI? (Choose 2)", isMultiple:true, options:{A:"Most Related Items",B:"Newest Created",C:"Oldest Created",D:"Least Related Items"}, correct:["A","C"] },
+  { id:"D1-Q70", source:"csdm", question:"A Configuration Management team needs to prevent duplicate server records. Where would identification rules be configured?", isMultiple:false, options:{A:"CMDB Workspace",B:"CMDB Health Dashboard",C:"CMDB Data Manager",D:"CMDB CI Class Manager"}, correct:["D"] },
+  { id:"D1-Q71", source:"csdm", question:"What is the relationship between an application and a server?", isMultiple:false, options:{A:"Application > Runs::Runs On > Server",B:"Application > Used by::Uses > Server",C:"Application > Uses::Used by > Server",D:"Application > Runs on::Runs > Server"}, correct:["A"] },
+  { id:"D1-Q72", source:"csdm", question:"An organization is updating the CMDB to include new asset types like IoT devices. Which roles are needed to add or remove classes from the Principal Class filter? (Choose 2)", isMultiple:true, options:{A:"personalize_dictionary",B:"sn_cmdb_admin",C:"sn_csdm_admin",D:"cmdb_query_builder"}, correct:["A","B"] },
+  { id:"D1-Q73", source:"csdm", question:"A Configuration Manager needs to enable a CMDB Data Manager policy to remove records while retaining the ability to restore them within a specified period. Which policy type should be created?", isMultiple:false, options:{A:"Retire",B:"Archive",C:"Delete",D:"Certification"}, correct:["B"] },
+  { id:"D1-Q74", source:"csdm", question:"A ServiceNow Administrator wants to implement Service Graph Connectors to provide integrations to many third-party solutions. Which categories of connectors are available? (Choose 2)", isMultiple:true, options:{A:"DevOps",B:"Cloud",C:"Workflow Automation",D:"Observability"}, correct:["B","D"] },
+  { id:"D1-NLQ", source:"csdm", question:"Where can an administrator perform Natural Language Queries (NLQ)?", isMultiple:false, options:{A:"CMDB Data Manager",B:"CI Class Manager",C:"CMDB Workspace",D:"CMDB Health Dashboard"}, correct:["C"] },
+
+  // ── SECTION 3: CMDB QA Exclusive (57) ──────────────────────────────────────
+  { id:"D2-Q1", source:"cmdb", question:"What is the value of using the CMDB in security operations? (Choose 2)", isMultiple:true, options:{A:"Auto-resolves a vulnerability",B:"Allows security team to assess and remediate an incident",C:"Identifies the IT infrastructure with a vulnerability",D:"Enables audits and attestations across CIs"}, correct:["B","C"] },
+  { id:"D2-Q3", source:"cmdb", question:"A data center has many servers. The CMDB Administrator wants to confirm that all servers exist. Which Data Manager policy type does the Administrator implement?", isMultiple:false, options:{A:"Attestation",B:"Certification",C:"Verification",D:"Promotion"}, correct:["A"] },
+  { id:"D2-Q4", source:"cmdb", question:"A Configuration Management team has decided to start taking advantage of the CMDB 360/Multisource CMDB functionality. Which system property must be enabled?", isMultiple:false, options:{A:"glide.identification_engine.multisource_enabled",B:"glide.identification_engine.multisource_cmdb_ci_enabled",C:"glide.identification_engine.multisource_non_cmdb_ci_enabled",D:"glide.identification_engine.multisource.query.max.limit"}, correct:["B"] },
+  { id:"D2-Q5", source:"cmdb", question:"A CMDB Administrator wants to ensure all short-lived CIs that have not been discovered in the past week are removed. After retiring the CI records, which recommended action does the CMDB Administrator take?", isMultiple:false, options:{A:"Create a delete policy",B:"Create a business rule",C:"Create a scheduled job"}, correct:["A"] },
+  { id:"D2-Q6", source:"cmdb", question:"How do CMDB management tools and features within the CMDB governance pillar help organizations manage CIs and improve service delivery? (Choose 2)", isMultiple:true, options:{A:"Gain visibility and control",B:"Assist integration choices",C:"Enhanced Service Management operations",D:"Reduced hardware costs"}, correct:["A","C"] },
+  { id:"D2-Q7", source:"cmdb", question:"A CMDB Manager uses CMDB 360/Multisource CMDB to maintain and improve CMDB quality. Why would the Manager use CMDB 360/Multisource CMDB?", isMultiple:false, options:{A:"To populate the CMDB from multiple data sources using Service Graph Connector(s)",B:"To ingest data from multiple data sources",C:"To identify CI attributes from multiple data sources",D:"To ingest data from multiple data sources using Import Set(s)"}, correct:["B"] },
+  { id:"D2-Q9", source:"cmdb", question:"A CMDB Administrator is managing group data from both the CI Class Manager and a Technical Service Offering for a specific class. What would be the Managed By Group for CIs from this class?", isMultiple:false, options:{A:"Windows Support",B:"Change Management Team",C:"Enterprise IT Services"}, correct:["A"] },
+  { id:"D2-Q10", source:"cmdb", question:"Using existing baseline Data Manager policies, what condition must a CI meet before it can be archived or deleted?", isMultiple:false, options:{A:"Be marked as inactive",B:"Be retired and in end of life",C:"Be marked as critical",D:"Be fully operational and in use"}, correct:["B"] },
+  { id:"D2-Q11", source:"cmdb", question:"A CMDB Administrator wants to configure IRE rules for the CMDB. The CMDB Administrator opens CI Class Manager and sees the Health Inclusions Rules tab available under a CI Class. How are these rules utilized by the IRE?", isMultiple:false, options:{A:"To reconcile specific attributes based on data sources",B:"To reduce the data ingested into the CMDB",C:"To narrow the scope of CIs included in the identification process"}, correct:["C"] },
+  { id:"D2-Q12", source:"cmdb", question:"The CMDB Administrator wants to leverage the Staleness metric from the CMDB Health Dashboard - Correctness Scorecard. Which field is used to calculate the duration of this metric?", isMultiple:false, options:{A:"Most recent discovery (last_discovery)",B:"Last modified on (last_modified)",C:"First discovered (first_discovered)",D:"Updated (sys_updated_on)",E:"Created (sys_created_on)"}, correct:["A"] },
+  { id:"D2-Q16", source:"cmdb", question:"A CMDB Administrator has imported data into the ServiceNow CMDB from a third-party source using a Service Graph Connector and wants to review specific field to field mappings. Which feature will show that information?", isMultiple:false, options:{A:"CMDB Integrations Dashboard",B:"Integration Hub",C:"IntegrationHub ETL"}, correct:["A"] },
+  { id:"D2-Q17", source:"cmdb", question:"A CMDB Administrator is creating technical documentation for stakeholders, which includes attributes, IRE rules, and suggested relationships for several classes. Which central location does the CMDB Administrator use?", isMultiple:false, options:{A:"CI Identifiers",B:"CMDB Data Manager",C:"CMDB Workspace",D:"CI Class Manager"}, correct:["D"] },
+  { id:"D2-Q18", source:"cmdb", question:"A CMDB Administrator needs to define a new CI class to track a new type of equipment. Which action adds a new CI class and ensures it integrates properly with the existing CMDB structure?", isMultiple:false, options:{A:"Create a new CI class directly in the CI Class Manager and configure table inheritance to inherit from a relevant parent class",B:"Use Service Catalog to define the new CI class",C:"Create a new CI class in CI Class Manager but avoid setting up any inheritance",D:"Edit an existing CI class and add new fields specific to the new equipment type"}, correct:["A"] },
+  { id:"D2-Q19", source:"cmdb", question:"An Enterprise Architect of a financial services company wants to track their capabilities. Which CSDM 5 domain is used?", isMultiple:false, options:{A:"Build and Integration (Build)",B:"Service Delivery (Manage Technical)",C:"Design and Planning (Design)",D:"Foundation",E:"Service Consumption (Sell/Consume)"}, correct:["D"] },
+  { id:"D2-Q20", source:"cmdb", question:"Which default user groups are available when setting up a CMDB Data Manager policy with Assignment type set to 'User Group Field'? (Choose 2)", isMultiple:true, options:{A:"Support Group",B:"Assignment Group",C:"Managed By Group",D:"Owned by Group"}, correct:["A","C"] },
+  { id:"D2-Q21", source:"cmdb", question:"A CMDB Administrator has a number of similar de-duplication tasks that need to be remediated in bulk. How does the Administrator achieve this?", isMultiple:false, options:{A:"Create de-duplication tasks manually and remediate each",B:"Create and run a de-duplication template",C:"Utilize the Duplicate CI Remediator Wizard",D:"Configure and run a custom de-duplication background script"}, correct:["B"] },
+  { id:"D2-Q22", source:"cmdb", question:"A CMDB Administrator is asked to create a query using the CMDB Query Builder that displays all operational CIs belonging to a specific application service. Which steps provide the desired outcome?", isMultiple:false, options:{A:"Add Business Application, Application Service, and Configuration Item classes. Define filter. Configure relationship. Run query.",B:"Add Application Service and Configuration Item classes. Configure relationship. Add Operational Status and Name fields as columns. Run query.",C:"Add Application Service and Configuration Item classes. Configure the relationship. Define a filter for the application service name and the operational status. Run the query."}, correct:["C"] },
+  { id:"D2-Q23", source:"cmdb", question:"A CMDB Administrator wants to educate the team on various actions that can be performed within the CMDB Workspace. What actions can be initiated from the CMDB Workspace? (Choose 2)", isMultiple:true, options:{A:"Create a CMDB Data Manager certification policy",B:"Remediate duplicate CI records",C:"Execute ServiceNow Discovery",D:"Create a new CMDB class"}, correct:["B","C"] },
+  { id:"D2-Q25", source:"cmdb", question:"A CSDM Data Manager needs metrics on the alignment of Technical Services and Technical Service Offerings with best practices. Which tab in the CSDM Data Foundation Dashboard provides this information?", isMultiple:false, options:{A:"Crawl",B:"Walk",C:"Fly",D:"Run"}, correct:["B"] },
+  { id:"D2-Q26", source:"cmdb", question:"A CMDB Administrator changes the query for the SCCM Service Graph Connector. What is the impact of this change?", isMultiple:false, options:{A:"Any updates for the SCCM Service Graph Connector will be skipped during the upgrade.",B:"Any Scheduled Jobs for the SCCM Service Graph Connector will need to be configured.",C:"The Data Source for the SCCM Service Graph Connector will be marked as Inactive."}, correct:["A"] },
+  { id:"D2-Q27", source:"cmdb", question:"A CMDB Administrator is beginning the journey of populating the CMDB and needs to verify that any data which is no longer useful/applicable is removed. Which governance management tool will accomplish this?", isMultiple:false, options:{A:"CI Class Manager",B:"CMDB Health Dashboard",C:"CMDB Data Manager",D:"CMDB and CSDM Data Foundations Dashboard",E:"De-duplication Templates"}, correct:["C"] },
+  { id:"D2-Q28", source:"cmdb", question:"What types of policies can be created within CMDB Data Manager? (Choose all that apply)", isMultiple:true, options:{A:"Reconciliation",B:"Archive",C:"Retire",D:"De-duplication"}, correct:["B","C","D"] },
+  { id:"D2-Q31", source:"cmdb", question:"A Service Portfolio Manager wants to know what Application Services their Business Service Offerings depend on. What stage of CSDM would map this relationship?", isMultiple:false, options:{A:"Crawl",B:"Foundation",C:"Fly",D:"Walk",E:"Run"}, correct:["D"] },
+  { id:"D2-Q33", source:"cmdb", question:"A customer wants to model their business applications and capture different types of data that includes PII data. Based on these requirements, which CMDB class needs to be leveraged?", isMultiple:false, options:{A:"Business Capability",B:"Data Classification",C:"Information Object",D:"API Component"}, correct:["C"] },
+  { id:"D2-Q36", source:"cmdb", question:"A Configuration Manager is managing a CI class in the CMDB. The identification rule(s) needs an update. Where can the Configuration Manager view and configure the existing identification rule(s) for the class? (Choose 2)", isMultiple:true, options:{A:"IRE Application",B:"API Integrations",C:"CI Class Manager",D:"CI Identifiers module"}, correct:["C","D"] },
+  { id:"D2-Q37", source:"cmdb", question:"A CMDB Administrator is comparing the Unified Map to the Service Mapping map. What are additional capabilities of the Unified Map? (Choose 2)", isMultiple:true, options:{A:"Map can be zoomed in and out",B:"Visibility to an application and the host it is installed on",C:"Number of levels displayed on a map can be modified",D:"Map nodes can be filtered based on user preferences"}, correct:["C","D"] },
+  { id:"D2-Q38", source:"cmdb", question:"During a CMDB implementation, a team member is tasked with ensuring the accuracy and completeness of CI data and resolving discrepancies. Which role is responsible for these tasks?", isMultiple:false, options:{A:"Service Owner",B:"Configuration Manager",C:"IT Asset Manager",D:"CMDB Architect"}, correct:["B"] },
+  { id:"D2-Q39", source:"cmdb", question:"A CMDB Administrator knows that the CMDB Data Foundation Dashboard is a resource to monitor and improve data quality. What is a benefit of this dashboard?", isMultiple:false, options:{A:"Provides the ability to resolve certification policy tasks",B:"Provides the ability to configure health-related metrics",C:"Provides key health-related metrics to make decisions"}, correct:["C"] },
+  { id:"D2-Q41", source:"cmdb", question:"A CMDB Architect intends to populate the CMDB using the CSDM guidance. Which key stakeholders should be involved in decisions regarding population of the CMDB using the CSDM Crawl Stage?", isMultiple:false, options:{A:"Business Service Manager, Technology Service Owner",B:"Customer Service Manager, Infrastructure Manager",C:"Application Owner, Application Service Owner"}, correct:["A"] },
+  { id:"D2-Q42", source:"cmdb", question:"A CMDB Administrator needs to track which CIs and CI classes are missing key data. Which CMDB Health Dashboard scorecard supports tracking this requirement?", isMultiple:false, options:{A:"Correctness",B:"Compliance",C:"Completeness"}, correct:["C"] },
+  { id:"D2-Q44", source:"cmdb", question:"An organization utilizes multiple data sources. A high-priority data source stops updating. Which configuration can be used to allow a lower-priority data source to update records after a specified period of inactivity?", isMultiple:false, options:{A:"Reconciliation Rules",B:"Health Inclusion Rules",C:"Data Refresh Rules",D:"Identification Rules"}, correct:["C"] },
+  { id:"D2-Q46", source:"cmdb", question:"The Configuration Management team wants to use CMDB 360/Multisource CMDB for all CI data. Which must be true in order for CMDB 360 to be able to report on and analyze that data?", isMultiple:false, options:{A:"The CI data must go through the IRE.",B:"Reconciliation rules with priorities must be configured.",C:"ServiceNow Discovery must be used to populate the CI data.",D:"The CI data must be from an authorized Service Graph Connector."}, correct:["A"] },
+  { id:"D2-Q47", source:"cmdb", question:"A hospital has received a new CT Scanner. The inventory management team has created a catalog item doctors can use to schedule patients for scans. What CSDM domain should the catalog item be mapped to?", isMultiple:false, options:{A:"Design and Planning (Design)",B:"Service Consumption (Sell/Consume)",C:"Build and Integration (Build)",D:"Foundation",E:"Service Delivery (Manage Technical Service)"}, correct:["B"] },
+  { id:"D2-Q48", source:"cmdb", question:"A Windows administration team wants a grouping of CIs using CMDB groups. Which methods can be used? (Choose 2)", isMultiple:true, options:{A:"Saved queries",B:"Scripted queries",C:"Encoded queries",D:"Tag-based queries"}, correct:["A","B"] },
+  { id:"D2-Q49", source:"cmdb", question:"A ServiceNow Administrator needs to create multiple new classes in the CMDB following ServiceNow's best practices for naming CMDB tables. Which is the starting prefix for all custom CMDB tables?", isMultiple:false, options:{A:"cmdb_ci",B:"u_ci_cmdb",C:"u_cmdb_ci",D:"ci_cmdb"}, correct:["C"] },
+  { id:"D2-Q50", source:"cmdb", question:"A CMDB Administrator group aims to establish a process for receiving task notifications when the Support Group or Managed By Group fields are not populated for operational Linux servers. Which ServiceNow modules can be leveraged?", isMultiple:false, options:{A:"CI Class Manager and Health Preferences",B:"Technical Service Offerings and Dynamic CI groups",C:"CMDB Workspace and Scheduled Jobs",D:"Dynamic CI groups and CMDB groups"}, correct:["A"] },
+  { id:"D2-Q51", source:"cmdb", question:"A Configuration Management team has successfully developed a healthy and trusted CMDB. Which field on a Change Request form is automatically populated after a CI is selected that references an appropriate change group?", isMultiple:false, options:{A:"Change Group",B:"Managed by Group",C:"Assignment Group",D:"Assigned to",E:"Support Group"}, correct:["A"] },
+  { id:"D2-Q52", source:"cmdb", question:"ServiceNow Event Management significantly benefits from a well-maintained and properly populated CMDB. What are key advantages it provides to Event Management? (Choose 2)", isMultiple:true, options:{A:"Mapped services provide visibility to the business impact of an alert",B:"Correlation of alerts to knowledge base articles",C:"Binding of alerts to specific CIs",D:"Mapped services provide visibility to users consuming the service"}, correct:["A","C"] },
+  { id:"D2-Q53", source:"cmdb", question:"A CMDB Administrator wants to ensure that only relevant CIs from managed classes will be shown on Incident, Problem, and Change records. Which checkbox needs to be checked in the CI Class Manager?", isMultiple:false, options:{A:"Main Record",B:"Extensible",C:"Principal Class",D:"Independent"}, correct:["C"] },
+  { id:"D2-Q54", source:"cmdb", question:"A Configuration Manager wants to manage manually maintained data attributes of CIs. Which group values are automatically synchronized on CIs using Technical Service Offerings and dynamic CI groups? (Choose 2)", isMultiple:true, options:{A:"Support group",B:"CMDB group",C:"Approval group",D:"Change group"}, correct:["A","D"] },
+  { id:"D2-Q56", source:"cmdb", question:"A CMDB Administrator has a report listing all CMDB Services that do not have an owner and wants to use a ServiceNow Playbook. What Governance process play can prevent this from recurring?", isMultiple:false, options:{A:"Make the field Managed by mandatory on all CIs",B:"Set a default value on the Service Owner field so that is never empty",C:"Make the field Owned by mandatory"}, correct:["A"] },
+  { id:"D2-Q57", source:"cmdb", question:"A CMDB Administrator utilizing the CMDB Data Foundations Dashboard sees an issue and wants to run a playbook. Which types of documentation can they expect to be provided in a playbook? (Choose 2)", isMultiple:true, options:{A:"Automated Remediations",B:"Problem Overview",C:"Problem Analysis",D:"Root Cause"}, correct:["B","C"] },
+  { id:"D2-Q58", source:"cmdb", question:"A health organization must track certain regulated data (patient information) and its relation to Business Applications. Which action does CSDM recommend?", isMultiple:false, options:{A:"Work with the Database administration team to classify the data on each database, then use Relationships to map back to the Business Application.",B:"Create an Information Object to represent the patient information, then link it through a relationship to the Business Application.",C:"Create fields on the Business Application record to mark it as containing patient information."}, correct:["B"] },
+  { id:"D2-Q59", source:"cmdb", question:"A Windows server is reclassified from the Server table [cmdb_ci_server] to the Windows Server table [cmdb_ci_win_server] when processed through the IRE. Which process occurred?", isMultiple:false, options:{A:"Class Switch",B:"Class Upgrade",C:"Class Downgrade",D:"Class Change"}, correct:["A"] },
+  { id:"D2-Q60", source:"cmdb", question:"The CMDB Configuration Management team has successfully developed a healthy and trusted CMDB. How will these improvements enhance the change management process? (Choose 2)", isMultiple:true, options:{A:"Enables auto population of the assignment group field to dynamically route changes",B:"Provides insight into the potential impact of the change",C:"Automatically schedules and deploys changes without human review or approval",D:"Ensures that no changes result in service downtime"}, correct:["A","B"] },
+  { id:"D2-Q62", source:"cmdb", question:"A CMDB Administrator wants to leverage the Staleness metric from the CMDB Health Dashboard - Correctness Scorecard. What is the default duration of this metric?", isMultiple:false, options:{A:"24 hours",B:"60 days",C:"30 days",D:"7 days"}, correct:["B"] },
+  { id:"D2-Q63b", source:"cmdb", question:"A CMDB Administrator needs to set a CI Class as a Principal Class. Which CI Class Manager tab would need to be accessed?", isMultiple:false, options:{A:"Class Info > Attributes",B:"Health > Attributes",C:"Class Info > Basic Info"}, correct:["C"] },
+  { id:"D2-Q65b", source:"cmdb", question:"A CMDB Administrator needs to ingest relevant data from Microsoft SCCM into the CMDB. Which ingestion method brings the fastest time to value?", isMultiple:false, options:{A:"Service Graph Connectors",B:"Agent Client Collector",C:"Import Sets",D:"IntegrationHub ETL"}, correct:["A"] },
+  { id:"D2-Q66b", source:"cmdb", question:"A Configuration Manager needs to restrict the number of classes available in a Configuration Item reference field on an incident form. How does the Manager set Principal Classes?", isMultiple:false, options:{A:"By using the Principal Class check box on the CMDB Workspace",B:"By using the Principal Class check box on the CI Class Manager's 'Attributes' tab for a Class",C:"By using the Principal Class check box on the CI Class Manager's 'Basic Info' tab for a Class",D:"By using the Principal Class attribute on the CI"}, correct:["C"] },
+  { id:"D2-Q67", source:"cmdb", question:"A CMDB Administrator aims to utilize CSDM life cycle field mappings to better align with CSDM best practices. What is the next step after selecting the Enable Life Cycle Sync button?", isMultiple:false, options:{A:"Fix the incorrect values in the Life Cycle Stage to match legacy values",B:"Resolve any incomplete field mappings identified in the Discrepancy Report",C:"Activate the CSDM Life Cycle field mappings"}, correct:["B"] },
+  { id:"D2-Q68b", source:"cmdb", question:"What are the characteristics or functions of ServiceNow IntegrationHub ETL? (Choose 2)", isMultiple:true, options:{A:"Uses the IRE to process and integrate data",B:"Performs discovery data collection and updates the CMDB",C:"Imports Microsoft SCCM/Intune data into the CMDB",D:"Integrates third-party data into the CMDB or into non-CMDB tables"}, correct:["A","D"] },
+  { id:"D2-Q70", source:"cmdb", question:"A CMDB Administrator is considering whether to start using the playbooks provided on the CMDB Data Foundation Dashboard. What are the benefits to support this decision? (Choose 2)", isMultiple:true, options:{A:"Offers remediation templates to improve poorly performing metrics",B:"Offers remediation options to address and improve poorly performing metrics",C:"Offers insight into the downstream impacts of poorly performing metrics",D:"Offers automated scripts to resolve poorly performing metrics"}, correct:["B","C"] },
+  { id:"D2-Q71", source:"cmdb", question:"A CSDM Data Manager needs metrics on the alignment of product models, locations, and business units with best practices. Which tab in the CSDM Data Foundations Dashboard provides this information?", isMultiple:false, options:{A:"Foundation",B:"Crawl",C:"Walk",D:"Fly",E:"Run"}, correct:["B"] },
+  { id:"D2-Q72b", source:"cmdb", question:"A CMDB Administrator has taken over management of a ServiceNow instance and has determined there are multiple deficiencies in the CMDB. How can Playbooks assist the Administrator in resolving these issues?", isMultiple:false, options:{A:"Playbooks can help analyze and fix issues.",B:"Playbooks can be installed in the instance to automatically fix issues.",C:"Playbooks can automatically track common CMDB issues and output metrics."}, correct:["A"] },
+  { id:"D2-Q73b", source:"cmdb", question:"A CMDB Configuration Manager sets up a data filter for a certification policy: Table: Server [cmdb_ci_server], Filter: Operating System contains 'Server' OR Operating System contains 'Linux'. Which operating systems are affected? (Choose 2)", isMultiple:true, options:{A:"AIX",B:"Linux CentOS",C:"Windows 2019 Datacenter",D:"Windows Server 2022 Datacenter"}, correct:["B","C"] },
+  { id:"D2-Q74b", source:"cmdb", question:"A Service Desk Manager wants to leverage the Unified Map to find active incidents or problems for a selected CI. Which panel will give the manager visibility and details?", isMultiple:false, options:{A:"Related items",B:"Application services",C:"Attributes",D:"Overview"}, correct:["A"] },
+  { id:"D2-Q75", source:"cmdb", question:"A CMDB Administrator needs insights into how their CMDB is configured according to ServiceNow recommended practice. Which should be used?", isMultiple:false, options:{A:"CMDB Health Dashboard",B:"CMDB Data Foundation Dashboard",C:"CMDB Workspace",D:"CMDB Data Manager"}, correct:["B"] }
+];
+
+let activeFilter = 'all';
+let currentQuestionIndex = 0;
+let userAnswers = {};
+let testQuestions = [];
+let timerInterval;
+let startTime;
+
+function setFilter(f) {
+    activeFilter = f;
+    ['All','Repeat','Csdm','Cmdb'].forEach(x => {
+        const btn = document.getElementById('filter'+x);
+        btn.className = 'filter-btn';
+    });
+    const map = { all:'active-all', repeat:'active-repeat', csdm:'active-csdm', cmdb:'active-cmdb' };
+    const idMap = { all:'filterAll', repeat:'filterRepeat', csdm:'filterCsdm', cmdb:'filterCmdb' };
+    document.getElementById(idMap[f]).classList.add(map[f]);
+}
+
+function getFilteredData() {
+    if (activeFilter === 'all') return [...quizData];
+    return quizData.filter(q => q.source === activeFilter);
+}
+
+function startTest() {
+    let pool = getFilteredData();
+    const shuffle = document.getElementById('shuffleQuestions').checked;
+    const timerEnabled = document.getElementById('timerEnabled').checked;
+    const numVal = document.getElementById('numQuestions').value;
+    if (shuffle) pool = shuffleArray(pool);
+    if (numVal !== 'all') pool = pool.slice(0, parseInt(numVal));
+    testQuestions = pool;
+
+    document.getElementById('startScreen').style.display = 'none';
+    document.getElementById('testControls').style.display = 'block';
+    document.getElementById('totalQuestions').textContent = testQuestions.length;
+
+    if (timerEnabled) {
+        document.getElementById('timerContainer').style.display = 'block';
+        startTime = Date.now();
+        timerInterval = setInterval(updateTimer, 1000);
+    }
+    createQuestionNavigator();
+    renderQuestion();
+}
+
+function shuffleArray(array) {
+    const a = [...array];
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
+function updateTimer() {
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    const m = Math.floor(elapsed / 60), s = elapsed % 60;
+    document.getElementById('timer').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+function createQuestionNavigator() {
+    const grid = document.getElementById('questionGrid');
+    grid.innerHTML = '';
+    testQuestions.forEach((q, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'question-nav-btn';
+        btn.textContent = index + 1;
+        btn.onclick = () => { currentQuestionIndex = index; renderQuestion(); };
+        grid.appendChild(btn);
+    });
+}
+
+function updateQuestionNavigator() {
+    document.querySelectorAll('.question-nav-btn').forEach((btn, index) => {
+        btn.className = 'question-nav-btn';
+        if (userAnswers[testQuestions[index].id]) btn.classList.add('answered');
+        if (index === currentQuestionIndex) btn.classList.add('current');
+    });
+}
+
+function getSourceTag(src) {
+    const map = { repeat:'⭐ Both', csdm:'🔵 CMDB & CSDM', cmdb:'🟢 CMDB QA' };
+    const cls = { repeat:'src-both', csdm:'src-csdm', cmdb:'src-cmdb' };
+    return `<span class="source-tag ${cls[src]}">${map[src]}</span>`;
+}
+
+function renderQuestion() {
+    const container = document.getElementById('questionContainer');
+    const question = testQuestions[currentQuestionIndex];
+    document.getElementById('currentQuestion').textContent = currentQuestionIndex + 1;
+    document.getElementById('progressFill').style.width = (((currentQuestionIndex + 1) / testQuestions.length) * 100) + '%';
+    document.getElementById('answeredCount').textContent = Object.keys(userAnswers).length;
+    updateQuestionNavigator();
+
+    const inputType = question.isMultiple ? 'checkbox' : 'radio';
+    const inputName = `q_${question.id}`;
+    let optionsHTML = '';
+    for (const [letter, text] of Object.entries(question.options)) {
+        const isChecked = userAnswers[question.id] && userAnswers[question.id].includes(letter);
+        optionsHTML += `
+            <label class="option ${isChecked ? 'selected' : ''}" onclick="selectOption(this, '${letter}', ${question.isMultiple})">
+                <input type="${inputType}" name="${inputName}" value="${letter}" ${isChecked ? 'checked' : ''}>
+                <span class="option-label"><span class="option-letter">${letter}</span>${text}</span>
+            </label>`;
+    }
+
+    container.innerHTML = `
+        <div class="question-card active">
+            <div class="question-header">
+                <span class="question-number">Question ${currentQuestionIndex + 1} of ${testQuestions.length}</span>
+                <div class="question-tags">
+                    <span class="question-type ${question.isMultiple ? 'type-multiple' : 'type-single'}">${question.isMultiple ? 'Multiple Select' : 'Single Choice'}</span>
+                    ${getSourceTag(question.source)}
+                </div>
+            </div>
+            <div class="question-text">${question.question}</div>
+            <div class="options-container">${optionsHTML}</div>
+            <div class="navigation">
+                <div class="nav-buttons">
+                    <button class="btn btn-secondary" onclick="previousQuestion()" ${currentQuestionIndex === 0 ? 'disabled' : ''}>← Previous</button>
+                </div>
+                <div class="nav-buttons">
+                    ${currentQuestionIndex < testQuestions.length - 1 ?
+                        '<button class="btn btn-primary" onclick="nextQuestion()">Next →</button>' :
+                        '<button class="btn btn-success" onclick="submitTest()">Submit Test</button>'}
+                </div>
+            </div>
+        </div>`;
+    window.scrollTo(0, 0);
+}
+
+function selectOption(element, letter, isMultiple) {
+    const question = testQuestions[currentQuestionIndex];
+    const checkbox = element.querySelector('input');
+    if (!isMultiple) {
+        document.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
+        element.classList.add('selected');
+        checkbox.checked = true;
+        userAnswers[question.id] = [letter];
+    } else {
+        checkbox.checked = !checkbox.checked;
+        element.classList.toggle('selected');
+        if (!userAnswers[question.id]) userAnswers[question.id] = [];
+        if (checkbox.checked) {
+            if (!userAnswers[question.id].includes(letter)) userAnswers[question.id].push(letter);
+        } else {
+            userAnswers[question.id] = userAnswers[question.id].filter(l => l !== letter);
+        }
+    }
+    document.getElementById('answeredCount').textContent = Object.keys(userAnswers).length;
+    updateQuestionNavigator();
+}
+
+function nextQuestion() { if (currentQuestionIndex < testQuestions.length - 1) { currentQuestionIndex++; renderQuestion(); } }
+function previousQuestion() { if (currentQuestionIndex > 0) { currentQuestionIndex--; renderQuestion(); } }
+
+function submitTest() {
+    const unansweredCount = testQuestions.length - Object.keys(userAnswers).length;
+    if (unansweredCount > 0 && !confirm(`You have ${unansweredCount} unanswered questions. Submit anyway?`)) return;
+    if (timerInterval) clearInterval(timerInterval);
+
+    let correct = 0, incorrect = 0, unanswered = 0;
+    const reviewHTML = [];
+
+    testQuestions.forEach((question, index) => {
+        const userAnswer = userAnswers[question.id] || [];
+        const correctAnswer = question.correct;
+        const isCorrect = userAnswer.length === correctAnswer.length && userAnswer.every(a => correctAnswer.includes(a));
+
+        if (userAnswer.length === 0) {
+            unanswered++;
+            const correctOpts = correctAnswer.map(l => `<div class="answer-option correct-answer"><strong>${l}:</strong> ${question.options[l]}</div>`).join('');
+            reviewHTML.push(`<div class="review-item"><div class="review-question">Q${index+1}: ${question.question}</div><div class="review-answer"><strong style="color:#f56565;">Not Answered</strong><div class="answer-detail"><strong>Correct Answer${correctAnswer.length > 1 ? 's' : ''}:</strong>${correctOpts}</div></div></div>`);
+        } else if (!isCorrect) {
+            incorrect++;
+            const userOpts = userAnswer.map(l => `<div class="answer-option wrong-answer"><strong>${l}:</strong> ${question.options[l]}</div>`).join('');
+            const correctOpts = correctAnswer.map(l => `<div class="answer-option correct-answer"><strong>${l}:</strong> ${question.options[l]}</div>`).join('');
+            reviewHTML.push(`<div class="review-item wrong"><div class="review-question">Q${index+1}: ${question.question}</div><div class="review-answer"><div class="answer-detail"><strong>Your Answer${userAnswer.length > 1 ? 's' : ''}:</strong>${userOpts}</div><div class="answer-detail"><strong>Correct Answer${correctAnswer.length > 1 ? 's' : ''}:</strong>${correctOpts}</div></div></div>`);
+        } else {
+            correct++;
+        }
+    });
+
+    const percentage = Math.round((correct / testQuestions.length) * 100);
+    document.getElementById('testControls').style.display = 'none';
+    document.getElementById('questionContainer').style.display = 'none';
+    document.getElementById('resultsContainer').classList.add('active');
+    document.getElementById('scorePercentage').textContent = percentage + '%';
+    document.getElementById('correctCount').textContent = correct;
+    document.getElementById('incorrectCount').textContent = incorrect;
+    document.getElementById('unansweredCount').textContent = unanswered;
+    document.getElementById('reviewList').innerHTML = reviewHTML.length > 0
+        ? '<h3 style="margin-bottom:15px;">Questions to Review:</h3>' + reviewHTML.join('')
+        : '<h3 style="color:#48bb78;">🎉 Perfect Score! All answers correct!</h3>';
+    window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>
